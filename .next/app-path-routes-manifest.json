@@ -1,0 +1,22 @@
+{
+  "/(auth)/api/auth/[...nextauth]/route": "/api/auth/[...nextauth]",
+  "/(auth)/api/auth/guest/route": "/api/auth/guest",
+  "/(auth)/login/page": "/login",
+  "/(auth)/register/page": "/register",
+  "/(chat)/api/chat/route": "/api/chat",
+  "/(chat)/api/document/route": "/api/document",
+  "/(chat)/api/files/upload/route": "/api/files/upload",
+  "/(chat)/api/gemini/route": "/api/gemini",
+  "/(chat)/api/history/route": "/api/history",
+  "/(chat)/api/rag/route": "/api/rag",
+  "/(chat)/api/suggestions/route": "/api/suggestions",
+  "/(chat)/api/vector-search-test/route": "/api/vector-search-test",
+  "/(chat)/api/vote/route": "/api/vote",
+  "/(chat)/chat/[id]/page": "/chat/[id]",
+  "/(chat)/opengraph-image-12cog0.png/route": "/opengraph-image-12cog0.png",
+  "/(chat)/page": "/",
+  "/(chat)/twitter-image-12cog0.png/route": "/twitter-image-12cog0.png",
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/favicon.ico/route": "/favicon.ico"
+}

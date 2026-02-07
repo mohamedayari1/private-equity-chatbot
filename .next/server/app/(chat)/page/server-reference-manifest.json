@@ -3,13 +3,17 @@
     "406445b45a874834bd5d87c0979376ae0be267f281": {
       "workers": {
         "app/(chat)/page": {
-          "moduleId": "[project]/.next-internal/server/app/(chat)/page/actions.js { ACTIONS_MODULE0 => \"[project]/app/(chat)/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false
+          "moduleId": 46206,
+          "async": false,
+          "exportedName": "updateChatVisibility",
+          "filename": "app/(chat)/actions.ts"
         }
       },
       "layer": {
         "app/(chat)/page": "action-browser"
-      }
+      },
+      "exportedName": "updateChatVisibility",
+      "filename": "app/(chat)/actions.ts"
     }
   },
   "edge": {}

@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "functions": {
+    "/api/chat": {
+      "maxDuration": 60
+    },
+    "/api/gemini": {
+      "maxDuration": 60
+    },
+    "/api/rag": {
+      "maxDuration": 60
+    }
+  }
+}

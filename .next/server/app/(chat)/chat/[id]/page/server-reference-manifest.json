@@ -1,0 +1,20 @@
+{
+  "node": {
+    "406445b45a874834bd5d87c0979376ae0be267f281": {
+      "workers": {
+        "app/(chat)/chat/[id]/page": {
+          "moduleId": 29458,
+          "async": false,
+          "exportedName": "updateChatVisibility",
+          "filename": "app/(chat)/actions.ts"
+        }
+      },
+      "layer": {
+        "app/(chat)/chat/[id]/page": "action-browser"
+      },
+      "exportedName": "updateChatVisibility",
+      "filename": "app/(chat)/actions.ts"
+    }
+  },
+  "edge": {}
+}

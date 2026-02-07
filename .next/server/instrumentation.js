@@ -1,6 +1,5 @@
-const CHUNK_PUBLIC_PATH = "server/instrumentation.js";
-const runtime = require("./chunks/[turbopack]_runtime.js");
-runtime.loadChunk("server/chunks/node_modules_cbb2fbc7._.js");
-runtime.loadChunk("server/chunks/[root-of-the-server]__afca2822._.js");
-runtime.getOrInstantiateRuntimeModule("[project]/instrumentation.ts [instrumentation-edge] (ecmascript)", CHUNK_PUBLIC_PATH);
-module.exports = runtime.getOrInstantiateRuntimeModule("[project]/instrumentation.ts [instrumentation-edge] (ecmascript)", CHUNK_PUBLIC_PATH).exports;
+var R=require("./chunks/[turbopack]_runtime.js")("server/instrumentation.js")
+R.c("server/chunks/[externals]__651e2879._.js")
+R.c("server/chunks/[root-of-the-server]__78732250._.js")
+R.m(69449)
+module.exports=R.m(69449).exports

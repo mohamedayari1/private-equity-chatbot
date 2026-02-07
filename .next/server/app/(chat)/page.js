@@ -1,26 +1,25 @@
-const CHUNK_PUBLIC_PATH = "server/app/(chat)/page.js";
-const runtime = require("../../chunks/ssr/[turbopack]_runtime.js");
-runtime.loadChunk("server/chunks/ssr/node_modules_next_dist_d404ad87._.js");
-runtime.loadChunk("server/chunks/ssr/[root-of-the-server]__0839f9db._.js");
-runtime.loadChunk("server/chunks/ssr/app_1f3630ef._.js");
-runtime.loadChunk("server/chunks/ssr/[root-of-the-server]__c7679922._.js");
-runtime.loadChunk("server/chunks/ssr/node_modules_96715ba7._.js");
-runtime.loadChunk("server/chunks/ssr/node_modules_next_dist_client_components_forbidden-error_ea7ea172.js");
-runtime.loadChunk("server/chunks/ssr/node_modules_next_dist_client_components_unauthorized-error_c8949b27.js");
-runtime.loadChunk("server/chunks/ssr/app_(chat)_a12f677f._.js");
-runtime.loadChunk("server/chunks/ssr/app_(chat)_f6cad68c._.js");
-runtime.loadChunk("server/chunks/ssr/node_modules_next_e9c9ebde._.js");
-runtime.loadChunk("server/chunks/ssr/node_modules_@auth_core_cef3d168._.js");
-runtime.loadChunk("server/chunks/ssr/node_modules_jose_dist_node_esm_06236085._.js");
-runtime.loadChunk("server/chunks/ssr/node_modules_zod_94c8a25a._.js");
-runtime.loadChunk("server/chunks/ssr/node_modules_zod-to-json-schema_dist_esm_ab50bbf3._.js");
-runtime.loadChunk("server/chunks/ssr/node_modules_88562ba7._.js");
-runtime.loadChunk("server/chunks/ssr/[root-of-the-server]__13fba50d._.js");
-runtime.loadChunk("server/chunks/ssr/node_modules_next_dist_6611d7b0._.js");
-runtime.loadChunk("server/chunks/ssr/node_modules_zod_dead5c13._.js");
-runtime.loadChunk("server/chunks/ssr/node_modules_ai_dist_a9202f7a._.js");
-runtime.loadChunk("server/chunks/ssr/node_modules_06869384._.js");
-runtime.loadChunk("server/chunks/ssr/_121c3143._.js");
-runtime.getOrInstantiateRuntimeModule("[project]/.next-internal/server/app/(chat)/page/actions.js { ACTIONS_MODULE0 => \"[project]/app/(chat)/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)", CHUNK_PUBLIC_PATH);
-runtime.getOrInstantiateRuntimeModule("[project]/node_modules/next/dist/esm/build/templates/app-page.js?page=/(chat)/page { METADATA_0 => \"[project]/app/favicon.ico.mjs { IMAGE => \\\"[project]/app/favicon.ico (static in ecmascript)\\\" } [app-rsc] (structured image object, ecmascript, Next.js server component)\", MODULE_1 => \"[project]/app/layout.tsx [app-rsc] (ecmascript, Next.js server component)\", MODULE_2 => \"[project]/node_modules/next/dist/client/components/not-found-error.js [app-rsc] (ecmascript, Next.js server component)\", MODULE_3 => \"[project]/node_modules/next/dist/client/components/forbidden-error.js [app-rsc] (ecmascript, Next.js server component)\", MODULE_4 => \"[project]/node_modules/next/dist/client/components/unauthorized-error.js [app-rsc] (ecmascript, Next.js server component)\", METADATA_5 => \"[project]/app/(chat)/twitter-image.png.mjs { IMAGE => \\\"[project]/app/(chat)/twitter-image.png (static in ecmascript)\\\" } [app-rsc] (structured image object, ecmascript, Next.js server component)\", METADATA_6 => \"[project]/app/(chat)/opengraph-image.png.mjs { IMAGE => \\\"[project]/app/(chat)/opengraph-image.png (static in ecmascript)\\\" } [app-rsc] (structured image object, ecmascript, Next.js server component)\", MODULE_7 => \"[project]/app/(chat)/layout.tsx [app-rsc] (ecmascript, Next.js server component)\", MODULE_8 => \"[project]/node_modules/next/dist/client/components/not-found-error.js [app-rsc] (ecmascript, Next.js server component)\", MODULE_9 => \"[project]/node_modules/next/dist/client/components/forbidden-error.js [app-rsc] (ecmascript, Next.js server component)\", MODULE_10 => \"[project]/node_modules/next/dist/client/components/unauthorized-error.js [app-rsc] (ecmascript, Next.js server component)\", METADATA_11 => \"[project]/app/(chat)/twitter-image.png.mjs { IMAGE => \\\"[project]/app/(chat)/twitter-image.png (static in ecmascript)\\\" } [app-rsc] (structured image object, ecmascript, Next.js server component)\", METADATA_12 => \"[project]/app/(chat)/opengraph-image.png.mjs { IMAGE => \\\"[project]/app/(chat)/opengraph-image.png (static in ecmascript)\\\" } [app-rsc] (structured image object, ecmascript, Next.js server component)\", MODULE_13 => \"[project]/app/(chat)/page.tsx [app-rsc] (ecmascript, Next.js server component)\" } [app-rsc] (ecmascript)", CHUNK_PUBLIC_PATH);
-module.exports = runtime.getOrInstantiateRuntimeModule("[project]/node_modules/next/dist/esm/build/templates/app-page.js?page=/(chat)/page { METADATA_0 => \"[project]/app/favicon.ico.mjs { IMAGE => \\\"[project]/app/favicon.ico (static in ecmascript)\\\" } [app-rsc] (structured image object, ecmascript, Next.js server component)\", MODULE_1 => \"[project]/app/layout.tsx [app-rsc] (ecmascript, Next.js server component)\", MODULE_2 => \"[project]/node_modules/next/dist/client/components/not-found-error.js [app-rsc] (ecmascript, Next.js server component)\", MODULE_3 => \"[project]/node_modules/next/dist/client/components/forbidden-error.js [app-rsc] (ecmascript, Next.js server component)\", MODULE_4 => \"[project]/node_modules/next/dist/client/components/unauthorized-error.js [app-rsc] (ecmascript, Next.js server component)\", METADATA_5 => \"[project]/app/(chat)/twitter-image.png.mjs { IMAGE => \\\"[project]/app/(chat)/twitter-image.png (static in ecmascript)\\\" } [app-rsc] (structured image object, ecmascript, Next.js server component)\", METADATA_6 => \"[project]/app/(chat)/opengraph-image.png.mjs { IMAGE => \\\"[project]/app/(chat)/opengraph-image.png (static in ecmascript)\\\" } [app-rsc] (structured image object, ecmascript, Next.js server component)\", MODULE_7 => \"[project]/app/(chat)/layout.tsx [app-rsc] (ecmascript, Next.js server component)\", MODULE_8 => \"[project]/node_modules/next/dist/client/components/not-found-error.js [app-rsc] (ecmascript, Next.js server component)\", MODULE_9 => \"[project]/node_modules/next/dist/client/components/forbidden-error.js [app-rsc] (ecmascript, Next.js server component)\", MODULE_10 => \"[project]/node_modules/next/dist/client/components/unauthorized-error.js [app-rsc] (ecmascript, Next.js server component)\", METADATA_11 => \"[project]/app/(chat)/twitter-image.png.mjs { IMAGE => \\\"[project]/app/(chat)/twitter-image.png (static in ecmascript)\\\" } [app-rsc] (structured image object, ecmascript, Next.js server component)\", METADATA_12 => \"[project]/app/(chat)/opengraph-image.png.mjs { IMAGE => \\\"[project]/app/(chat)/opengraph-image.png (static in ecmascript)\\\" } [app-rsc] (structured image object, ecmascript, Next.js server component)\", MODULE_13 => \"[project]/app/(chat)/page.tsx [app-rsc] (ecmascript, Next.js server component)\" } [app-rsc] (ecmascript)", CHUNK_PUBLIC_PATH).exports;
+var R=require("../../chunks/ssr/[turbopack]_runtime.js")("server/app/(chat)/page.js")
+R.c("server/chunks/ssr/[root-of-the-server]__7ac57c37._.js")
+R.c("server/chunks/ssr/_6139f1ce._.js")
+R.c("server/chunks/ssr/_3d0dd4c9._.js")
+R.c("server/chunks/ssr/[externals]__97fdf9e9._.js")
+R.c("server/chunks/ssr/node_modules_next_dist_888546f2._.js")
+R.c("server/chunks/ssr/node_modules_02534074._.js")
+R.c("server/chunks/ssr/node_modules_57f938a5._.js")
+R.c("server/chunks/ssr/node_modules_@opentelemetry_api_build_esm_2917b80e._.js")
+R.c("server/chunks/ssr/app_b9b1292a._.js")
+R.c("server/chunks/ssr/app_(chat)_1a2ced7a._.js")
+R.c("server/chunks/ssr/app_(chat)_756c7635._.js")
+R.c("server/chunks/ssr/node_modules_next_dist_client_components_builtin_global-error_ece394eb.js")
+R.c("server/chunks/ssr/[root-of-the-server]__6379d87a._.js")
+R.c("server/chunks/ssr/node_modules_next_dist_client_components_9774470f._.js")
+R.c("server/chunks/ssr/node_modules_next_dist_client_components_builtin_forbidden_45780354.js")
+R.c("server/chunks/ssr/node_modules_next_dist_client_components_builtin_unauthorized_15817684.js")
+R.c("server/chunks/ssr/[externals]__28ab5ecd._.js")
+R.c("server/chunks/ssr/node_modules_next_06f89723._.js")
+R.c("server/chunks/ssr/_c8c04d10._.js")
+R.c("server/chunks/ssr/_3d4d560a._.js")
+R.c("server/chunks/ssr/[root-of-the-server]__2d821a7e._.js")
+R.c("server/chunks/ssr/[root-of-the-server]__7a5de847._.js")
+R.m(68628)
+module.exports=R.m(68628).exports

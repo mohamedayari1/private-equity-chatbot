@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 23, "column": 0}, "map": {"version":3,"sources":["turbopack:///[project]/middleware.ts"],"sourcesContent":["import { NextResponse, type NextRequest } from 'next/server';\n\nexport async function middleware(request: NextRequest) {\n  // TEMPORARY: Bypass all auth logic for UI development\n  return NextResponse.next();\n}\n\nexport const config = {\n  matcher: [\n    '/',\n    '/chat/:id',\n    '/api/:path*',\n    '/login',\n    '/register',\n    '/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)',\n  ],\n};\n"],"names":[],"mappings":";;;;AAAA;AAAA;;AAEO,eAAe,WAAW,OAAoB;IACnD,sDAAsD;IACtD,OAAO,6LAAA,CAAA,eAAY,CAAC,IAAI;AAC1B;AAEO,MAAM,SAAS;IACpB,SAAS;QACP;QACA;QACA;QACA;QACA;QACA;KACD;AACH"}}]
-}

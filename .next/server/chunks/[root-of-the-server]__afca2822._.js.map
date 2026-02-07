@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 39, "column": 0}, "map": {"version":3,"sources":["file:///home/o__bit__o/projects/actum-agent/full-stack-chatbot/instrumentation.ts"],"sourcesContent":["import { registerOTel } from '@vercel/otel';\n\nexport function register() {\n  registerOTel({ serviceName: 'ai-chatbot' });\n}\n"],"names":[],"mappings":";;;AAAA;;AAEO,SAAS;IACd,CAAA,GAAA,sKAAA,CAAA,eAAY,AAAD,EAAE;QAAE,aAAa;IAAa;AAC3C","debugId":null}}]
-}
