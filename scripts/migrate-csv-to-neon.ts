@@ -1,44 +1,43 @@
 #!/usr/bin/env tsx
 /**
- * CSV to Supabase Migration Script
+ * CSV to Neon PostgreSQL Migration Script
  *
  * Migrates all CSV files from data/2020 and data/2021 directories
- * into a normalized PostgreSQL schema in Supabase.
+ * into a normalized PostgreSQL schema in Neon.
  *
  * Usage:
- *   npm run migrate:csv              # Run migration
- *   npm run migrate:csv:dry-run      # Test without inserting data
+ *   bun run migrate:csv              # Run migration
+ *   bun run migrate:csv:dry-run      # Test without inserting data
  *
  * Environment Variables Required:
- *   SUPABASE_CONNECTION_STRING or (SUPABASE_URL + SUPABASE_DB_PASSWORD)
+ *   NEON_CONNECTION_STRING
  */
 
-import { config } from "dotenv";
 import * as fs from "fs";
 import Papa from "papaparse";
 import * as path from "path";
 import postgres from "postgres";
-
-// Load environment variables
-config();
 
 // =====================================================
 // Configuration
 // =====================================================
 
 const DRY_RUN = process.argv.includes("--dry-run");
-const DATA_DIRS = ["data/2020", "data/2021"];
+const DATA_DIRS = [
+  "/home/o__bit__o/projects/actum-agent/full-stack-chatbot/data/2020",
+  "/home/o__bit__o/projects/actum-agent/full-stack-chatbot/data/2021",
+];
 
-// Build connection string
+// Hardcoded Neon connection string
 const CONNECTION_STRING =
-  process.env.SUPABASE_CONNECTION_STRING ||
-  `postgresql://postgres:${process.env.SUPABASE_DB_PASSWORD}@${process.env.SUPABASE_URL?.replace("https://", "").replace("http://", "")}:5432/postgres`;
+  "postgresql://neondb_owner:npg_w2dmcUyDth8F@ep-proud-truth-aiqwhbwf-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require";
 
-if (!CONNECTION_STRING.includes("postgresql://")) {
-  console.error("❌ Error: Invalid Supabase connection configuration");
-  console.error("Please set either:");
-  console.error("  - SUPABASE_CONNECTION_STRING");
-  console.error("  - or both SUPABASE_URL and SUPABASE_DB_PASSWORD");
+if (!CONNECTION_STRING || !CONNECTION_STRING.includes("postgresql://")) {
+  console.error("❌ Error: Invalid Neon connection configuration");
+  console.error("Please set NEON_CONNECTION_STRING in your .env file");
+  console.error(
+    "Example: NEON_CONNECTION_STRING=postgresql://user:pass@host/dbname?sslmode=require",
+  );
   process.exit(1);
 }
 
@@ -406,7 +405,7 @@ async function processAllCSVFiles(): Promise<MigrationStats> {
   };
 
   for (const dir of DATA_DIRS) {
-    const dirPath = path.join(process.cwd(), dir);
+    const dirPath = path.resolve(dir);
 
     if (!fs.existsSync(dirPath)) {
       console.warn(`⚠️  Directory not found: ${dir}`);
@@ -435,7 +434,7 @@ async function processAllCSVFiles(): Promise<MigrationStats> {
 
 async function main() {
   console.log("=".repeat(60));
-  console.log("🚀 CSV to Supabase Migration Script");
+  console.log("🚀 CSV to Neon PostgreSQL Migration Script");
   console.log("=".repeat(60));
 
   if (DRY_RUN) {

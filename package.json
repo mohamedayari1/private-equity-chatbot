@@ -16,8 +16,8 @@
     "db:pull": "drizzle-kit pull",
     "db:check": "drizzle-kit check",
     "db:up": "drizzle-kit up",
-    "migrate:csv": "tsx scripts/migrate-csv-to-supabase.ts",
-    "migrate:csv:dry-run": "tsx scripts/migrate-csv-to-supabase.ts --dry-run",
+    "migrate:csv": "tsx scripts/migrate-csv-to-neon.ts",
+    "migrate:csv:dry-run": "tsx scripts/migrate-csv-to-neon.ts --dry-run",
     "test": "export PLAYWRIGHT=True && bun x playwright test",
     "test:calculator": "npx tsx mastra/test-calculator.ts"
   },

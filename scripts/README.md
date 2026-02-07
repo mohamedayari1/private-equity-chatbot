@@ -1,23 +1,23 @@
-# CSV to Supabase Migration
+# CSV to Neon PostgreSQL Migration
 
-This directory contains the database schema and migration scripts for importing PE deal data from CSV files into Supabase.
+This directory contains the database schema and migration scripts for importing PE deal data from CSV files into Neon PostgreSQL.
 
 ## Quick Start
 
-### 1. Set up Supabase Connection
+### 1. Set up Neon Connection
 
-Copy `.env.example` to `.env` and add your Supabase credentials:
+Copy `.env.example` to `.env` and add your Neon connection string:
 
 ```bash
 cp .env.example .env
-# Edit .env and add your SUPABASE_CONNECTION_STRING
+# Edit .env and add your NEON_CONNECTION_STRING
 ```
 
 ### 2. Create Database Schema
 
-Run the SQL schema in your Supabase SQL Editor:
+Run the SQL schema in your Neon SQL Editor:
 
-1. Go to your Supabase project dashboard
+1. Go to your Neon project dashboard (https://console.neon.tech)
 2. Navigate to SQL Editor
 3. Copy the contents of `scripts/db/schema.sql`
 4. Paste and execute in the SQL Editor
@@ -27,19 +27,19 @@ Run the SQL schema in your Supabase SQL Editor:
 **Dry run first (recommended):**
 
 ```bash
-npm run migrate:csv:dry-run
+bun run migrate:csv:dry-run
 ```
 
 **Run actual migration:**
 
 ```bash
-npm run migrate:csv
+bun run migrate:csv
 ```
 
 ## Files
 
 - **`scripts/db/schema.sql`** - PostgreSQL schema with normalized tables
-- **`scripts/migrate-csv-to-supabase.ts`** - TypeScript migration script
+- **`scripts/migrate-csv-to-neon.ts`** - TypeScript migration script
 - **`.env.example`** - Environment variable template
 
 ## Database Schema
