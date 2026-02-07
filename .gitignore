@@ -6,7 +6,8 @@ node_modules
 /coverage
 
 # next.js
-/.next/
+.idea/
+.next/
 /out/
 
 # production
