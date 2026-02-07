@@ -1,0 +1,4 @@
+{
+  "/(chat)/api/history/route": "app/(chat)/api/history/route.js",
+  "/(chat)/page": "app/(chat)/page.js"
+}
