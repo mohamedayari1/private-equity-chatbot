@@ -22,7 +22,7 @@ export default function Greeting() {
         transition={{ delay: 0.6 }}
         className="text-2xl text-zinc-500"
       >
-        Ready to decode what the stars say about your life?
+        Ready to analyze your investment opportunities?
       </motion.div>
       <motion.div
         initial={{ opacity: 0, y: 10 }}
@@ -31,7 +31,7 @@ export default function Greeting() {
         transition={{ delay: 0.7 }}
         className="text-2xl text-zinc-500"
       >
-         I’ve got your cosmic back!
+        I've got your analytical support!
       </motion.div>
     </div>
   );

@@ -4,26 +4,28 @@ import { Button } from "../ui/button";
 export default function SuggestedActions() {
   const suggestedActions = [
     {
-      title: "Get my birth chart",
-      label: "based on date, time, and place of birth",
-      action: "Generate a birth chart and explain my planetary placements",
-    },
-    {
-      title: "Horoscope forecast",
-      label: "for today, this week, or this month",
+      title: "Analyze a company",
+      label: "based on financial metrics and market position",
       action:
-        "Give me a daily, weekly, or monthly horoscope based on current transits",
+        "Analyze a company's financial performance and investment potential",
     },
     {
-      title: "Check relationship compatibility",
-      label: "based on two birth dates",
-      action: "Compare two birth charts and analyze compatibility",
-    },
-    {
-      title: "Ask a personal astrology question",
-      label: "like why I feel anxious or when to switch jobs",
+      title: "Market trends analysis",
+      label: "for specific sectors or industries",
       action:
-        "Analyze my current astrological transits and answer a specific question",
+        "Provide insights on current market trends and sector performance",
+    },
+    {
+      title: "Evaluate a potential deal",
+      label: "based on valuation and risk factors",
+      action:
+        "Assess the viability and risks of a potential investment opportunity",
+    },
+    {
+      title: "Ask an investment question",
+      label: "like portfolio strategy or market timing",
+      action:
+        "Answer a specific question about investment strategy or market conditions",
     },
   ];
 
@@ -46,10 +48,11 @@ export default function SuggestedActions() {
             onClick={() => console.log(suggestedAction)}
             className="text-left border rounded-xl px-4 py-3.5 text-sm flex-1 gap-1 sm:flex-col w-full h-auto justify-start items-start"
           >
-          <span className="font-medium">{suggestedAction.title}</span>
-          <span className="text-muted-foreground">{suggestedAction.label}</span>
+            <span className="font-medium">{suggestedAction.title}</span>
+            <span className="text-muted-foreground">
+              {suggestedAction.label}
+            </span>
           </Button>
-
         </motion.div>
       ))}
     </div>
