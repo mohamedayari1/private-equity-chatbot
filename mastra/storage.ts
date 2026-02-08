@@ -2,7 +2,7 @@ import { Memory } from "@mastra/memory";
 import { PostgresStore } from "@mastra/pg";
 
 const CONNECTION_STRING =
-  "postgresql://neondb_owner:npg_w2dmcUyDth8F@ep-proud-truth-aiqwhbwf-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require";
+  "postgresql://neondb_owner:npg_w2dmcUyDth8F@ep-proud-truth-aiqwhbwf-pooler.c-4.us-east-1.aws.neon.tech/neondb";
 
 // Extend the global type to include our instances
 declare global {
