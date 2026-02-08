@@ -12,10 +12,11 @@ async function testCalculatorAgent() {
   console.log("🧮 Testing Calculator Agent\n");
 
   // Get the calculator agent
-  const agent = mastra.getAgent("calculator-agent");
+  // Get the PE Analyst Agent
+  const agent = mastra.getAgent("PE Analyst Agent");
 
   if (!agent) {
-    console.error("❌ Calculator agent not found!");
+    console.error("❌ PE Analyst Agent not found!");
     return;
   }
 

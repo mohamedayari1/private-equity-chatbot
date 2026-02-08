@@ -11,8 +11,8 @@ config();
 async function testWebSearch() {
   console.log("🔍 Testing Web Search Agent\n");
 
-  // Get the calculator agent (which now has search capabilities)
-  const agent = mastra.getAgent("calculator-agent");
+  // Get the PE Analyst Agent (which has search capabilities)
+  const agent = mastra.getAgent("PE Analyst Agent");
 
   if (!agent) {
     console.error("❌ Agent not found!");

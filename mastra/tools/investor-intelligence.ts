@@ -1,5 +1,9 @@
 import { createTool } from "@mastra/core/tools";
 import { z } from "zod";
+import {
+  getInvestorCompanies,
+  getInvestorPortfolio,
+} from "../db/queries/pe-queries";
 
 /**
  * Investor Intelligence Tool
@@ -14,16 +18,6 @@ import { z } from "zod";
  * - Analyzing investor track record and portfolio composition
  * - Finding active investors in specific sectors
  * - Assessing investor check sizes and stage preferences
- * - Understanding investor network effects
- *
- * Database Integration Notes:
- * - TODO: Query investors table for firm profile and metadata
- * - TODO: Join with investments table to get portfolio companies
- * - TODO: Calculate sector concentration and stage preferences
- * - TODO: Track investment velocity (deals per quarter)
- * - TODO: Aggregate average check sizes by stage
- * - TODO: Identify co-investment patterns and network
- * - TODO: Calculate portfolio performance metrics (exits, valuations)
  */
 
 /**
@@ -38,103 +32,102 @@ const InvestorIntelligenceInputSchema = z.object({
     .optional()
     .default(true)
     .describe("Include full portfolio breakdown"),
-  timeRange: z
-    .enum(["1year", "3years", "5years", "all"])
-    .optional()
-    .default("3years")
-    .describe("Time period for investment activity analysis"),
-  focusSector: z
-    .string()
-    .optional()
-    .describe("Filter investments by specific sector"),
 });
 
 /**
  * Output schema - defines what the tool returns
  */
 const InvestorIntelligenceOutputSchema = z.object({
+  found: z.boolean().describe("Whether the investor was found in the dataset"),
   investor: z
     .object({
       name: z.string().describe("Official investor/firm name"),
-      type: z
-        .enum(["VC", "Corporate VC", "Angel", "PE Fund", "Family Office"])
-        .describe("Type of investor"),
-      headquarters: z.string().optional().describe("Location of headquarters"),
-      foundedYear: z.number().optional().describe("Year firm was established"),
-      aum: z
+      companiesInvested: z.number().describe("Number of portfolio companies"),
+      totalInvestedUsd: z.string().describe("Total amount invested"),
+      industries: z.array(z.string()).describe("Industries where they invest"),
+      stages: z.array(z.string()).describe("Investment stages"),
+      firstInvestmentDate: z
         .string()
         .optional()
-        .describe("Assets under management (AUM) if available"),
-      website: z.string().optional().describe("Firm website"),
-    })
-    .describe("Basic investor profile"),
-  investmentThesis: z
-    .object({
-      focusSectors: z.array(z.string()).describe("Primary investment sectors"),
-      stagePreferences: z
-        .array(z.string())
-        .describe("Preferred investment stages"),
-      geographicFocus: z
-        .array(z.string())
-        .describe("Geographic regions of focus"),
-      typicalCheckSize: z.string().describe("Typical investment amount range"),
-      investmentCriteria: z
-        .array(z.string())
+        .describe("Date of first investment"),
+      lastInvestmentDate: z
+        .string()
         .optional()
-        .describe("Key investment criteria or preferences"),
+        .describe("Date of most recent investment"),
     })
-    .describe("Investment strategy and thesis"),
+    .optional()
+    .describe("Basic investor profile"),
   portfolio: z
-    .object({
-      totalInvestments: z.number().describe("Total number of portfolio companies"),
-      activeInvestments: z.number().describe("Number of active investments"),
-      companies: z
-        .array(
-          z.object({
-            name: z.string().describe("Portfolio company name"),
-            sector: z.string().describe("Company sector"),
-            stage: z.string().describe("Stage when invested"),
-            investmentDate: z.string().describe("Date of investment"),
-            amount: z.string().optional().describe("Investment amount"),
-            currentStatus: z
-              .enum(["Active", "Exited", "Acquired", "IPO", "Failed"])
-              .describe("Current status"),
-          })
-        )
-        .describe("Portfolio companies"),
-      sectorDistribution: z
-        .record(z.number())
-        .describe("Distribution of investments by sector"),
-    })
-    .describe("Portfolio composition"),
-  recentActivity: z
-    .object({
-      lastInvestmentDate: z.string().describe("Date of most recent investment"),
-      dealsLast12Months: z.number().describe("Number of deals in last 12 months"),
-      investmentVelocity: z.string().describe("Average deals per quarter"),
-      trendingFocus: z
-        .array(z.string())
-        .describe("Sectors with increased activity"),
-    })
-    .describe("Recent investment activity metrics"),
-  coInvestors: z
     .array(
       z.object({
-        name: z.string().describe("Co-investor name"),
-        coInvestmentCount: z.number().describe("Number of co-investments"),
-        commonSectors: z.array(z.string()).describe("Shared sector focus"),
-      })
+        companyName: z.string().describe("Portfolio company name"),
+        industry: z.string().optional().describe("Company industry"),
+        subVertical: z.string().optional().describe("Sub-sector"),
+        city: z.string().optional().describe("Company location"),
+        investmentStage: z.string().optional().describe("Stage when invested"),
+        amountUsd: z.string().optional().describe("Investment amount"),
+        fundingDate: z.string().optional().describe("Date of investment"),
+      }),
     )
     .optional()
-    .describe("Frequent co-investment partners"),
-  keyInsights: z.array(z.string()).describe("Strategic insights about investor"),
+    .describe("Portfolio companies"),
+  keyInsights: z
+    .array(z.string())
+    .describe("Strategic insights about investor"),
   dataSource: z
-    .enum(["database", "external", "hybrid"])
+    .enum(["database", "external", "not_found"])
     .describe("Source of the data"),
+  externalSearchRequired: z
+    .boolean()
+    .describe("Whether external search is needed for more data"),
+  matchedInvestors: z
+    .array(z.string())
+    .optional()
+    .describe("Other investors matching the search if multiple found"),
 });
 
-type InvestorIntelligenceInput = z.infer<typeof InvestorIntelligenceInputSchema>;
-type InvestorIntelligenceOutput = z.infer<typeof InvestorIntelligenceOutputSchema>;
+type InvestorIntelligenceInput = z.infer<
+  typeof InvestorIntelligenceInputSchema
+>;
+type InvestorIntelligenceOutput = z.infer<
+  typeof InvestorIntelligenceOutputSchema
+>;
+
+/**
+ * Format USD amount for display
+ */
+function formatUSD(amount: number | string | null): string {
+  if (!amount) return "Undisclosed";
+  const num = typeof amount === "string" ? parseFloat(amount) : amount;
+  if (isNaN(num) || num === 0) return "Undisclosed";
+
+  if (num >= 1_000_000_000) {
+    return `$${(num / 1_000_000_000).toFixed(1)}B`;
+  } else if (num >= 1_000_000) {
+    return `$${(num / 1_000_000).toFixed(1)}M`;
+  } else if (num >= 1_000) {
+    return `$${(num / 1_000).toFixed(0)}K`;
+  }
+  return `$${num.toFixed(0)}`;
+}
+
+/**
+ * Parse PostgreSQL array format
+ */
+function parseArray(arr: any): string[] {
+  if (!arr) return [];
+  if (Array.isArray(arr)) return arr.filter(Boolean);
+  if (typeof arr === "string") {
+    const cleaned = arr.replace(/[{}]/g, "");
+    return cleaned
+      ? cleaned
+          .split(",")
+          .map((s: string) => s.trim())
+          .filter(Boolean)
+      : [];
+  }
+  return [];
+}
 
 /**
  * Investor Intelligence Tool Implementation
@@ -164,155 +157,118 @@ export const investorIntelligenceTool = createTool({
   outputSchema: InvestorIntelligenceOutputSchema,
 
   execute: async (
-    input: InvestorIntelligenceInput
+    input: InvestorIntelligenceInput,
   ): Promise<InvestorIntelligenceOutput> => {
     try {
-      // TODO: Database Integration
-      // const investorProfile = await db.query(`
-      //   SELECT
-      //     i.name, i.type, i.headquarters, i.founded_year,
-      //     i.aum, i.website
-      //   FROM investors i
-      //   WHERE LOWER(i.name) = LOWER(?)
-      //   LIMIT 1
-      // `, [input.investorName]);
-      //
-      // const portfolioData = await db.query(`
-      //   SELECT
-      //     s.name, s.industry as sector,
-      //     inv.stage, inv.date as investment_date,
-      //     inv.amount, inv.status as current_status
-      //   FROM investments inv
-      //   JOIN startups s ON inv.startup_id = s.id
-      //   JOIN investors i ON inv.investor_id = i.id
-      //   WHERE LOWER(i.name) = LOWER(?)
-      //     AND inv.date >= NOW() - INTERVAL ? YEAR
-      //     AND (? IS NULL OR s.industry = ?)
-      //   ORDER BY inv.date DESC
-      // `, [input.investorName, getYearsFromTimeRange(input.timeRange),
-      //     input.focusSector, input.focusSector]);
-      //
-      // const coInvestorData = await db.query(`
-      //   SELECT
-      //     i2.name, COUNT(*) as co_investment_count,
-      //     ARRAY_AGG(DISTINCT s.industry) as common_sectors
-      //   FROM investments inv1
-      //   JOIN investments inv2 ON inv1.startup_id = inv2.startup_id
-      //   JOIN investors i1 ON inv1.investor_id = i1.id
-      //   JOIN investors i2 ON inv2.investor_id = i2.id
-      //   JOIN startups s ON inv1.startup_id = s.id
-      //   WHERE LOWER(i1.name) = LOWER(?)
-      //     AND i1.id != i2.id
-      //   GROUP BY i2.id, i2.name
-      //   HAVING COUNT(*) >= 3
-      //   ORDER BY co_investment_count DESC
-      //   LIMIT 10
-      // `, [input.investorName]);
-
-      // Mock portfolio data
-      const mockPortfolioCompanies = [
-        {
-          name: "Stripe",
-          sector: "Fintech",
-          stage: "Series B",
-          investmentDate: "2012-07-01",
-          amount: "$18M",
-          currentStatus: "Active" as const,
-        },
-        {
-          name: "Airbnb",
-          sector: "Marketplace",
-          stage: "Series A",
-          investmentDate: "2011-03-01",
-          amount: "$7.2M",
-          currentStatus: "IPO" as const,
-        },
-        {
-          name: "DoorDash",
-          sector: "On-Demand",
-          stage: "Series A",
-          investmentDate: "2014-05-01",
-          amount: "$2.4M",
-          currentStatus: "IPO" as const,
-        },
-        {
-          name: "Instacart",
-          sector: "E-commerce",
-          stage: "Series B",
-          investmentDate: "2013-06-01",
-          amount: "$8.5M",
-          currentStatus: "Active" as const,
-        },
-      ];
-
-      const sectorDistribution = mockPortfolioCompanies.reduce(
-        (acc, company) => {
-          acc[company.sector] = (acc[company.sector] || 0) + 1;
-          return acc;
-        },
-        {} as Record<string, number>
+      console.log(
+        `[InvestorIntelligenceTool] Looking up: "${input.investorName}"`,
       );
 
-      const keyInsights = [
-        `${input.investorName} shows strong preference for Series A and B rounds`,
-        "Portfolio heavily weighted towards marketplace and fintech sectors (55%)",
-        "Investment velocity of 4-6 deals per quarter, indicating active deployment",
-        "Strong track record with 3 successful IPOs in last 5 years",
-        "Frequently co-invests with other tier-1 VCs like a16z and Accel",
-      ];
+      // Query the database for investor portfolio
+      const portfolioResults = await getInvestorPortfolio(input.investorName);
+
+      if (!portfolioResults || portfolioResults.length === 0) {
+        console.log(
+          `[InvestorIntelligenceTool] Investor not found: "${input.investorName}"`,
+        );
+        return {
+          found: false,
+          dataSource: "not_found",
+          externalSearchRequired: true,
+          keyInsights: [
+            `Investor "${input.investorName}" was not found in the dataset.`,
+            "Consider using external search to find information about this investor.",
+          ],
+        };
+      }
+
+      const investorData = portfolioResults[0] as any;
+
+      // Get portfolio companies if requested
+      let portfolioCompanies: any[] = [];
+      if (input.includePortfolio) {
+        const companies = await getInvestorCompanies(input.investorName);
+        portfolioCompanies = companies as any[];
+      }
+
+      // Parse arrays
+      const industries = parseArray(investorData.industries);
+      const stages = parseArray(investorData.stages);
+
+      // Format investor profile
+      const investor = {
+        name: investorData.investor_name,
+        companiesInvested: parseInt(investorData.companies_invested) || 0,
+        totalInvestedUsd: formatUSD(investorData.total_invested_usd),
+        industries,
+        stages,
+        firstInvestmentDate: investorData.first_investment_date
+          ? new Date(investorData.first_investment_date)
+              .toISOString()
+              .split("T")[0]
+          : undefined,
+        lastInvestmentDate: investorData.last_investment_date
+          ? new Date(investorData.last_investment_date)
+              .toISOString()
+              .split("T")[0]
+          : undefined,
+      };
+
+      // Format portfolio
+      const portfolio = portfolioCompanies.map((c: any) => ({
+        companyName: c.company_name,
+        industry: c.industry || undefined,
+        subVertical: c.sub_vertical || undefined,
+        city: c.city || undefined,
+        investmentStage: c.investment_stage || undefined,
+        amountUsd: formatUSD(c.amount_usd),
+        fundingDate: c.funding_date
+          ? new Date(c.funding_date).toISOString().split("T")[0]
+          : undefined,
+      }));
+
+      // Generate insights
+      const keyInsights: string[] = [];
+
+      if (investor.companiesInvested > 0) {
+        keyInsights.push(
+          `${investor.name} has invested in ${investor.companiesInvested} companies with total investment of ${investor.totalInvestedUsd}.`,
+        );
+      }
+
+      if (industries.length > 0) {
+        const topIndustries = industries.slice(0, 3).join(", ");
+        keyInsights.push(`Primary sector focus: ${topIndustries}.`);
+      }
+
+      if (stages.length > 0) {
+        keyInsights.push(`Active in ${stages.join(", ")} stage investments.`);
+      }
+
+      if (investor.lastInvestmentDate) {
+        keyInsights.push(
+          `Most recent investment was on ${investor.lastInvestmentDate}.`,
+        );
+      }
+
+      // Check for multiple matches
+      const matchedInvestors =
+        portfolioResults.length > 1
+          ? portfolioResults.slice(1).map((r: any) => r.investor_name)
+          : undefined;
+
+      console.log(
+        `[InvestorIntelligenceTool] Found investor: "${investor.name}" with ${investor.companiesInvested} portfolio companies`,
+      );
 
       return {
-        investor: {
-          name: input.investorName,
-          type: "VC",
-          headquarters: "Menlo Park, CA",
-          foundedYear: 1972,
-          aum: "$85B",
-          website: "https://www.sequoiacap.com",
-        },
-        investmentThesis: {
-          focusSectors: ["Fintech", "Enterprise SaaS", "Healthcare Tech", "Marketplace"],
-          stagePreferences: ["Series A", "Series B", "Series C"],
-          geographicFocus: ["North America", "Europe", "Asia"],
-          typicalCheckSize: "$10M - $50M",
-          investmentCriteria: [
-            "Strong founding team with domain expertise",
-            "Large addressable market ($1B+)",
-            "Clear path to profitability",
-            "Technology-enabled disruption",
-          ],
-        },
-        portfolio: {
-          totalInvestments: input.includePortfolio ? 250 : 0,
-          activeInvestments: 180,
-          companies: input.includePortfolio ? mockPortfolioCompanies : [],
-          sectorDistribution: input.includePortfolio ? sectorDistribution : {},
-        },
-        recentActivity: {
-          lastInvestmentDate: "2024-01-15",
-          dealsLast12Months: 18,
-          investmentVelocity: "4.5 deals per quarter",
-          trendingFocus: ["AI/ML Infrastructure", "Climate Tech", "Web3"],
-        },
-        coInvestors: [
-          {
-            name: "Andreessen Horowitz",
-            coInvestmentCount: 24,
-            commonSectors: ["Fintech", "Enterprise SaaS"],
-          },
-          {
-            name: "Accel Partners",
-            coInvestmentCount: 18,
-            commonSectors: ["SaaS", "Marketplace"],
-          },
-          {
-            name: "Lightspeed Venture Partners",
-            coInvestmentCount: 15,
-            commonSectors: ["E-commerce", "Consumer"],
-          },
-        ],
+        found: true,
+        investor,
+        portfolio: input.includePortfolio ? portfolio : undefined,
         keyInsights,
-        dataSource: "database", // Will be 'hybrid' when external data is added
+        dataSource: "database",
+        externalSearchRequired: industries.length === 0,
+        matchedInvestors,
       };
     } catch (error) {
       const errorMessage =

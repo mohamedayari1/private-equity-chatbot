@@ -1,5 +1,6 @@
 import { createTool } from "@mastra/core/tools";
 import { z } from "zod";
+import { getStartupProfile } from "../db/queries/pe-queries";
 
 /**
  * Company Lookup Tool
@@ -13,23 +14,13 @@ import { z } from "zod";
  * - Checking if a company exists in the dataset
  * - Gathering founding information, investors, and funding history
  * - Identifying data gaps that require external search
- *
- * Database Integration Notes:
- * - TODO: Query startups table by company name (consider fuzzy matching)
- * - TODO: Join with investments table to get funding rounds and amounts
- * - TODO: Join with investors table to get investor details
- * - TODO: Join with founders table to get founder information
- * - TODO: Add caching layer for frequently accessed companies
- * - TODO: Implement external fallback when company not found in database
  */
 
 /**
  * Input schema - defines what parameters the tool accepts
  */
 const CompanyLookupInputSchema = z.object({
-  companyName: z
-    .string()
-    .describe("Name of the company/startup to look up"),
+  companyName: z.string().describe("Name of the company/startup to look up"),
   includeFinancials: z
     .boolean()
     .optional()
@@ -53,24 +44,19 @@ const CompanyLookupOutputSchema = z.object({
         .array(z.string())
         .optional()
         .describe("List of founder names"),
-      totalRaised: z
-        .string()
-        .optional()
-        .describe("Total amount raised in USD"),
+      totalRaised: z.string().optional().describe("Total amount raised in USD"),
       lastInvestmentStage: z
         .string()
         .optional()
         .describe("Most recent investment stage"),
       investors: z
-        .array(
-          z.object({
-            name: z.string().describe("Investor name"),
-            stage: z.string().describe("Stage at which they invested"),
-            amount: z.string().optional().describe("Investment amount"),
-          })
-        )
+        .array(z.string())
         .optional()
-        .describe("List of investors"),
+        .describe("List of investor names"),
+      fundingRoundsCount: z
+        .number()
+        .optional()
+        .describe("Number of funding rounds"),
     })
     .optional()
     .describe("Company profile data"),
@@ -80,14 +66,32 @@ const CompanyLookupOutputSchema = z.object({
   externalSearchRequired: z
     .boolean()
     .describe("Whether external search is needed for missing data"),
-  missingFields: z
+  matchedCompanies: z
     .array(z.string())
     .optional()
-    .describe("Fields that are missing and may need external lookup"),
+    .describe("Other companies matching the search if multiple found"),
 });
 
 type CompanyLookupInput = z.infer<typeof CompanyLookupInputSchema>;
 type CompanyLookupOutput = z.infer<typeof CompanyLookupOutputSchema>;
+
+/**
+ * Format USD amount for display
+ */
+function formatUSD(amount: number | string | null): string {
+  if (!amount) return "Undisclosed";
+  const num = typeof amount === "string" ? parseFloat(amount) : amount;
+  if (isNaN(num) || num === 0) return "Undisclosed";
+
+  if (num >= 1_000_000_000) {
+    return `$${(num / 1_000_000_000).toFixed(1)}B`;
+  } else if (num >= 1_000_000) {
+    return `$${(num / 1_000_000).toFixed(1)}M`;
+  } else if (num >= 1_000) {
+    return `$${(num / 1_000).toFixed(0)}K`;
+  }
+  return `$${num.toFixed(0)}`;
+}
 
 /**
  * Company Lookup Tool Implementation
@@ -117,73 +121,89 @@ export const companyLookupTool = createTool({
 
   execute: async (input: CompanyLookupInput): Promise<CompanyLookupOutput> => {
     try {
-      // TODO: Database Integration
-      // const company = await db.query(`
-      //   SELECT
-      //     s.name, s.sub_vertical, s.industry, s.city, s.founding_date,
-      //     ARRAY_AGG(DISTINCT f.name) as founders,
-      //     SUM(i.amount) as total_raised,
-      //     MAX(i.stage) as last_stage
-      //   FROM startups s
-      //   LEFT JOIN founders f ON s.id = f.startup_id
-      //   LEFT JOIN investments i ON s.id = i.startup_id
-      //   WHERE LOWER(s.name) = LOWER(?)
-      //   GROUP BY s.id
-      // `, [input.companyName]);
+      console.log(`\n${"=".repeat(60)}`);
+      console.log(`🔧 [CompanyLookupTool] STARTED`);
+      console.log(
+        `📥 Input: companyName="${input.companyName}", includeFinancials=${input.includeFinancials}`,
+      );
+      console.log(`⏰ Timestamp: ${new Date().toISOString()}`);
+      console.log(`${"=".repeat(60)}\n`);
 
-      // Mock: Simulate company found in database
-      const companyFound = Math.random() > 0.3; // 70% found rate
+      // Query the database for startup profile
+      const results = await getStartupProfile(input.companyName);
 
-      if (companyFound) {
-        const mockCompany = {
-          name: input.companyName,
-          subVertical: "B2B SaaS",
-          industry: "Enterprise Software",
-          city: "San Francisco",
-          foundingDate: "2019-03-15",
-          founders: ["John Doe", "Jane Smith"],
-          totalRaised: "$25M",
-          lastInvestmentStage: "Series B",
-          investors: [
-            {
-              name: "Sequoia Capital",
-              stage: "Series A",
-              amount: "$10M",
-            },
-            {
-              name: "Andreessen Horowitz",
-              stage: "Series B",
-              amount: "$15M",
-            },
-          ],
-        };
-
-        const missingFields: string[] = [];
-        if (!mockCompany.founders || mockCompany.founders.length === 0) {
-          missingFields.push("founders");
-        }
-        if (!mockCompany.totalRaised) {
-          missingFields.push("funding_amount");
-        }
-
-        return {
-          found: true,
-          company: mockCompany,
-          dataSource: "database",
-          externalSearchRequired: missingFields.length > 0,
-          missingFields:
-            missingFields.length > 0 ? missingFields : undefined,
-        };
-      } else {
-        // Company not found in database - needs external search
+      if (!results || results.length === 0) {
+        console.log(
+          `[CompanyLookupTool] Company not found: "${input.companyName}"`,
+        );
         return {
           found: false,
           dataSource: "not_found",
           externalSearchRequired: true,
           company: undefined,
-          missingFields: ["all"],
         };
       }
+
+      // Take the first (best) match
+      const company = results[0] as any;
+
+      // Parse arrays from PostgreSQL (they come as strings like "{item1,item2}")
+      const parseArray = (arr: any): string[] => {
+        if (!arr) return [];
+        if (Array.isArray(arr)) return arr.filter(Boolean);
+        if (typeof arr === "string") {
+          // Handle PostgreSQL array format
+          const cleaned = arr.replace(/[{}]/g, "");
+          return cleaned
+            ? cleaned
+                .split(",")
+                .map((s: string) => s.trim())
+                .filter(Boolean)
+            : [];
+        }
+        return [];
+      };
+
+      const foundersArray = parseArray(company.founders);
+      const investorsArray = parseArray(company.investors);
+
+      // Determine if external search might be beneficial
+      const missingCriticalData =
+        foundersArray.length === 0 || !company.industry || !company.city;
+
+      // Format the response
+      const formattedCompany = {
+        name: company.name,
+        subVertical: company.sub_vertical || undefined,
+        industry: company.industry || undefined,
+        city: company.city || undefined,
+        foundingDate: company.founding_date
+          ? new Date(company.founding_date).toISOString().split("T")[0]
+          : undefined,
+        founders: foundersArray.length > 0 ? foundersArray : undefined,
+        totalRaised: formatUSD(company.total_raised_usd),
+        lastInvestmentStage: company.last_investment_stage || undefined,
+        investors: investorsArray.length > 0 ? investorsArray : undefined,
+        fundingRoundsCount: parseInt(company.funding_rounds_count) || 0,
+      };
+
+      // If multiple companies matched, include them
+      const matchedCompanies =
+        results.length > 1
+          ? results.slice(1).map((r: any) => r.name)
+          : undefined;
+
+      console.log(
+        `[CompanyLookupTool] Found company: "${company.name}" with ${formattedCompany.fundingRoundsCount} funding rounds`,
+      );
+
+      return {
+        found: true,
+        company: formattedCompany,
+        dataSource: "database",
+        externalSearchRequired: missingCriticalData,
+        matchedCompanies,
+      };
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
