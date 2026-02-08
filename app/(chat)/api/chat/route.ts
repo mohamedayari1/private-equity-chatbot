@@ -19,17 +19,38 @@ export async function POST(req: Request) {
       return Response.json({ error: "No message provided" }, { status: 400 });
     }
 
-    // Generate response using the agent (non-streaming)
-    const result = await agent.generate(lastMessage.content, {
-      threadId: `chat-${Date.now()}`,
-      resourceId: "user-web-client",
+    // Generate response using the agent (streaming)
+    // We use the same memory structure as seen in test-streaming.ts
+    const { textStream } = await agent.stream(lastMessage.content, {
+      memory: {
+        thread: {
+          id: `chat-${Date.now()}`,
+          title: "Chat Session",
+          metadata: { environment: "production" },
+        },
+        resource: "user-web-client",
+      },
     });
 
-    // Return the response as JSON
-    return Response.json({
-      id: Date.now().toString(),
-      role: "assistant",
-      content: result.text,
+    const stream = new ReadableStream({
+      async start(controller) {
+        try {
+          for await (const chunk of textStream) {
+            controller.enqueue(new TextEncoder().encode(chunk));
+          }
+          controller.close();
+        } catch (error) {
+          controller.error(error);
+        }
+      },
+    });
+
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "text/plain; charset=utf-8",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+      },
     });
   } catch (error) {
     console.error("Error in chat route:", error);

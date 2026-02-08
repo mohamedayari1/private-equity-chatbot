@@ -45,17 +45,43 @@ export function Chat() {
         throw new Error("Failed to get response");
       }
 
-      const data = await response.json();
+      if (!response.body) {
+        throw new Error("No response body");
+      }
 
-      // Add assistant message to chat
-      const assistantMessage: ChatMessage = {
-        id: data.id,
+      // Initialize assistant message
+      const assistantMessageId = Date.now().toString();
+      const initialAssistantMessage: ChatMessage = {
+        id: assistantMessageId,
         role: "assistant",
-        parts: [{ type: "text", text: data.content }],
+        parts: [{ type: "text", text: "" }],
         metadata: { createdAt: new Date().toISOString() },
       };
 
-      setMessages((prev) => [...prev, assistantMessage]);
+      setMessages((prev) => [...prev, initialAssistantMessage]);
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let accumulatedText = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        accumulatedText += chunk;
+
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === assistantMessageId
+              ? {
+                  ...msg,
+                  parts: [{ type: "text", text: accumulatedText }],
+                }
+              : msg,
+          ),
+        );
+      }
     } catch (error) {
       console.error("Error:", error);
       // Add error message
