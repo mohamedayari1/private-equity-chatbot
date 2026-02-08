@@ -1,5 +1,6 @@
 import { Agent } from "@mastra/core/agent";
 import { getGeminiModel } from "./llmProvider";
+import { getAzureModel } from "./llmProvider";
 import conversationMemory from "./memory";
 import { calculatorTool } from "./tool";
 
@@ -8,7 +9,8 @@ import { calculatorTool } from "./tool";
  */
 export const createCalculatorAgent = () => {
   // 1. Get the Gemini model
-  const model = getGeminiModel("gemini-2.5-pro");
+  // const model = getGeminiModel("gemini-2.5-pro");
+  const model = getAzureModel("gpt-4o");
 
   // 2. Define system instructions (the agent's personality/role)
   const instructions = `
