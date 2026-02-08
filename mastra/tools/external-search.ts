@@ -15,13 +15,6 @@ import { searchTavily } from "../services/tavily";
  * - Researching emerging technologies or business models
  * - Validating or enriching existing database information
  * - Competitive intelligence on private companies
- *
- * Database Integration Notes:
- * - TODO: Log all external searches to track information gaps
- * - TODO: Store search results in cache table to avoid repeated API calls
- * - TODO: Track which companies/topics require frequent external lookup
- * - TODO: Implement smart fallback when database queries return incomplete data
- * - dataSource: Always 'external' (this tool specifically fetches external data)
  */
 
 /**
@@ -31,18 +24,8 @@ const ExternalSearchInputSchema = z.object({
   query: z
     .string()
     .describe(
-      "Search query for external knowledge (e.g., company name, market trend, technology)"
+      "Search query for external knowledge (e.g., company name, market trend, technology)",
     ),
-  provider: z
-    .enum(["tavily", "serper"])
-    .optional()
-    .default("tavily")
-    .describe("External search provider to use"),
-  searchType: z
-    .enum(["general", "news", "company", "market"])
-    .optional()
-    .default("general")
-    .describe("Type of search to optimize results"),
   maxResults: z
     .number()
     .optional()
@@ -51,39 +34,21 @@ const ExternalSearchInputSchema = z.object({
 });
 
 /**
- * Output schema - defines what the tool returns
+ * Output schema - simplified to match Tavily's response
  */
 const ExternalSearchOutputSchema = z.object({
-  query: z.string().describe("The original search query"),
+  query: z.string().describe("The search query that was executed"),
   results: z
     .array(
       z.object({
         title: z.string().describe("Title of the search result"),
         url: z.string().describe("URL of the source"),
-        snippet: z
-          .string()
-          .describe("Brief excerpt or description of the content"),
-        publishedDate: z
-          .string()
-          .optional()
-          .describe("Publication date if available"),
-        source: z.string().describe("Source website or publication"),
-        relevanceScore: z
-          .number()
-          .optional()
-          .describe("Relevance score from search provider"),
-      })
+        content: z.string().describe("Main content/snippet from the page"),
+        score: z.number().describe("Relevance score (0-1)"),
+      }),
     )
-    .describe("Search results from external provider"),
-  summary: z
-    .string()
-    .optional()
-    .describe("AI-generated summary of key findings"),
-  provider: z.string().describe("Search provider used"),
-  dataSource: z
-    .literal("external")
-    .describe("Always 'external' for this tool"),
-  cached: z.boolean().describe("Whether results were retrieved from cache"),
+    .describe("Array of search results from Tavily"),
+  resultCount: z.number().describe("Total number of results returned"),
 });
 
 type ExternalSearchInput = z.infer<typeof ExternalSearchInputSchema>;
@@ -96,15 +61,15 @@ export const externalSearchTool = createTool({
   id: "external-search",
 
   description: `
-    Searches the web for current information using external providers like Tavily and Serper.
-    Use this tool when information is not available in the internal database.
+    Searches the web for current information using Tavily search API.
+    Use this tool when information is not available in your knowledge or you need current data.
 
     Use this tool when:
-    - A company is not found in the database
+    - A company or topic is not in your knowledge base
     - Recent news or updates are needed
     - Researching emerging trends or technologies
     - Questions like "What's the latest news about [Company]?"
-    - Validating or enriching database information
+    - Validating or enriching information
 
     Examples:
     - "Search for recent news about Stripe's product launches"
@@ -116,87 +81,39 @@ export const externalSearchTool = createTool({
   inputSchema: ExternalSearchInputSchema,
   outputSchema: ExternalSearchOutputSchema,
 
-  execute: async (input: ExternalSearchInput): Promise<ExternalSearchOutput> => {
+  execute: async (
+    input: ExternalSearchInput,
+  ): Promise<ExternalSearchOutput> => {
     try {
-      // TODO: Check cache first
-      // const cachedResults = await db.query(`
-      //   SELECT results, created_at
-      //   FROM search_cache
-      //   WHERE query_hash = MD5(?)
-      //     AND created_at > NOW() - INTERVAL '24 hours'
-      //   LIMIT 1
-      // `, [input.query]);
-      //
-      // if (cachedResults.length > 0) {
-      //   return {
-      //     ...cachedResults[0].results,
-      //     cached: true
-      //   };
-      // }
+      console.log(
+        `[ExternalSearchTool] Executing search for: "${input.query}"`,
+      );
 
-      let searchResults: any;
-      let provider = input.provider || "tavily";
+      // Call Tavily service
+      const tavilyResults = await searchTavily(input.query, {
+        maxResults: input.maxResults,
+      });
 
-      if (provider === "tavily") {
-        // Call actual Tavily service
-        const tavilyResults = await searchTavily(input.query);
-        searchResults = tavilyResults;
-      } else {
-        // Mock for serper - would be actual API call
-        searchResults = {
-          results: [],
-        };
-      }
+      console.log(
+        `[ExternalSearchTool] Tavily returned ${tavilyResults.results.length} results`,
+      );
 
-      // Transform to standardized format
-      const formattedResults = Array.isArray(searchResults?.results)
-        ? searchResults.results.slice(0, input.maxResults).map((result: any) => ({
-            title: result.title || "No title",
-            url: result.url || "",
-            snippet: result.content || result.snippet || "",
-            publishedDate: result.published_date || undefined,
-            source: result.source || new URL(result.url || "").hostname,
-            relevanceScore: result.score || undefined,
-          }))
-        : [
-            // Mock fallback data
-            {
-              title: `Search results for: ${input.query}`,
-              url: "https://example.com",
-              snippet: "External search results would appear here",
-              source: "example.com",
-            },
-          ];
+      // Transform Tavily results to match our schema
+      const results = tavilyResults.results.map((result) => ({
+        title: result.title,
+        url: result.url,
+        content: result.content,
+        score: parseFloat(result.score),
+      }));
 
-      // Generate simple summary from results
-      const summary =
-        formattedResults.length > 0
-          ? `Found ${formattedResults.length} relevant results about "${input.query}". ${
-              input.searchType === "news"
-                ? "Recent news and updates included."
-                : ""
-            }`
-          : `No results found for "${input.query}". Try refining your search query.`;
-
-      // TODO: Store in cache
-      // await db.query(`
-      //   INSERT INTO search_cache (query_hash, query, results, created_at)
-      //   VALUES (MD5(?), ?, ?, NOW())
-      // `, [input.query, input.query, JSON.stringify(output)]);
-
-      // TODO: Log search for analytics
-      // await db.query(`
-      //   INSERT INTO search_log (query, search_type, result_count, created_at)
-      //   VALUES (?, ?, ?, NOW())
-      // `, [input.query, input.searchType, formattedResults.length]);
+      console.log(
+        `[ExternalSearchTool] Returning ${results.length} formatted results`,
+      );
 
       return {
         query: input.query,
-        results: formattedResults,
-        summary,
-        provider,
-        dataSource: "external",
-        cached: false, // Will be true when cache is implemented
+        results,
+        resultCount: results.length,
       };
     } catch (error) {
       const errorMessage =
