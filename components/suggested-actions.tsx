@@ -20,28 +20,28 @@ function PureSuggestedActions({
 }: SuggestedActionsProps) {
   const suggestedActions = [
     {
-      title: "Analyze a company",
-      label: "based on financial metrics and market position",
+      title: "Analyze Investor",
+      label: "Funding details from dataset",
       action:
-        "Analyze a company's financial performance and investment potential",
+        "Who are the investors in CARS24 and what was their Series F funding amount?",
     },
     {
-      title: "Market trends analysis",
-      label: "for specific sectors or industries",
+      title: "Market Analysis",
+      label: "Identify trends in dataset",
       action:
-        "Provide insights on current market trends and sector performance",
+        "What is the total capital raised by FinTech startups in Bangalore in 2021?",
     },
     {
-      title: "Evaluate a potential deal",
-      label: "based on valuation and risk factors",
+      title: "External Research",
+      label: "Find missing startup info",
       action:
-        "Assess the viability and risks of a potential investment opportunity",
+        "Provide a profile for Zepto. Who are its founders and what is its latest funding status?",
     },
     {
-      title: "Ask an investment question",
-      label: "like portfolio strategy or market timing",
+      title: "Market Mapping",
+      label: "Analyst-style sector report",
       action:
-        "Answer a specific question about investment strategy or market conditions",
+        "Create a market map of the HealthTech sector in India based on the dataset.",
     },
   ];
 

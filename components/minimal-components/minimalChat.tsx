@@ -2,6 +2,7 @@
 
 import { ChatMessage } from "@/lib/types";
 import { useState } from "react";
+import { SuggestedActions } from "../suggested-actions";
 import ChatHeader from "./chat-header";
 import ChatInput from "./input";
 import Conversation from "./messages";
@@ -11,18 +12,13 @@ export function Chat() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setInput(e.target.value);
-  };
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!input.trim() || isLoading) return;
+  const submitMessage = async (text: string) => {
+    if (!text.trim() || isLoading) return;
 
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
       role: "user",
-      parts: [{ type: "text", text: input.trim() }],
+      parts: [{ type: "text", text: text.trim() }],
       metadata: { createdAt: new Date().toISOString() },
     };
 
@@ -37,7 +33,7 @@ export function Chat() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          messages: [{ content: input.trim() }],
+          messages: [{ content: text.trim() }],
         }),
       });
 
@@ -102,11 +98,33 @@ export function Chat() {
     }
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value);
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    await submitMessage(input);
+  };
+
+  const sendMessage = async (message: any) => {
+    if (message.parts && message.parts[0] && message.parts[0].text) {
+      await submitMessage(message.parts[0].text);
+    }
+  };
+
   return (
     <div className="flex flex-col min-w-0 h-dvh bg-background">
       <ChatHeader />
       <Conversation messages={messages} isLoading={isLoading} />
-      <div className="flex mx-auto px-4 bg-background pb-4 md:pb-6 gap-2 w-full md:max-w-3xl">
+      <div className="flex mx-auto px-4 bg-background pb-4 md:pb-6 gap-2 w-full md:max-w-3xl flex-col">
+        {messages.length === 0 && (
+          <SuggestedActions
+            chatId="default"
+            sendMessage={sendMessage}
+            selectedVisibilityType="private"
+          />
+        )}
         <form onSubmit={handleSubmit} className="w-full">
           <ChatInput
             input={input}
